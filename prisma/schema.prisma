@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  KARYAWAN
+}
+
+enum PayrollStatus {
+  DRAFT
+  DIPROSES
+  SELESAI
+}
+
+model User {
+  id         Int       @id @default(autoincrement())
+  name       String
+  email      String    @unique
+  password   String
+  role       Role      @default(KARYAWAN)
+  isActive   Boolean   @default(true)
+
+  employeeId Int?      @unique
+  employee   Employee? @relation(fields: [employeeId], references: [id])
+
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Employee {
+  id             Int       @id @default(autoincrement())
+  nik            String    @unique
+  nama           String
+  email          String    @unique
+  tanggalLahir   DateTime
+  tanggalMasuk   DateTime
+  status         String    @default("Aktif")
+
+  positionId     Int
+  gradeId        Int
+
+  position       Position  @relation(fields: [positionId], references: [id])
+  grade          Grade     @relation(fields: [gradeId], references: [id])
+
+  user           User?
+  payrolls       Payroll[]
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("employees")
+}
+
+model Position {
+  id        Int        @id @default(autoincrement())
+  nama      String     @unique
+
+  employees Employee[]
+
+  @@map("positions")
+}
+
+model Grade {
+  id        Int        @id @default(autoincrement())
+  nama      String     @unique
+  gajiPokok Decimal    @db.Decimal(14, 2)
+
+  employees Employee[]
+
+  @@map("grades")
+}
+
+model Earning {
+  id        Int             @id @default(autoincrement())
+  nama      String
+  tipe      String
+  nilai     Decimal         @db.Decimal(14, 2)
+  isActive  Boolean         @default(true)
+
+  details   PayrollDetail[]
+
+  @@map("earnings")
+}
+
+model Deduction {
+  id        Int             @id @default(autoincrement())
+  nama      String
+  tipe      String
+  nilai     Decimal         @db.Decimal(14, 2)
+  isActive  Boolean         @default(true)
+
+  details   PayrollDetail[]
+
+  @@map("deductions")
+}
+
+model Payroll {
+  id               Int             @id @default(autoincrement())
+
+  employeeId       Int
+  employee         Employee        @relation(fields: [employeeId], references: [id])
+
+  bulan            Int
+  tahun            Int
+
+  gajiPokok        Decimal         @db.Decimal(14, 2)
+  totalTunjangan   Decimal         @db.Decimal(14, 2)
+  totalBonus       Decimal         @db.Decimal(14, 2)
+  totalLembur      Decimal         @db.Decimal(14, 2)
+
+  bpjs             Decimal         @db.Decimal(14, 2)
+  pph21            Decimal         @db.Decimal(14, 2)
+  potonganLain     Decimal         @db.Decimal(14, 2)
+
+  takeHomePay      Decimal         @db.Decimal(14, 2)
+
+  status           PayrollStatus   @default(DRAFT)
+
+  details          PayrollDetail[]
+
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([employeeId, bulan, tahun])
+  @@map("payrolls")
+}
+
+model PayrollDetail {
+  id            Int         @id @default(autoincrement())
+
+  payrollId     Int
+  payroll       Payroll     @relation(fields: [payrollId], references: [id], onDelete: Cascade)
+
+  earningId     Int?
+  earning       Earning?    @relation(fields: [earningId], references: [id])
+
+  deductionId   Int?
+  deduction     Deduction?  @relation(fields: [deductionId], references: [id])
+
+  jumlah        Decimal     @db.Decimal(14, 2)
+
+  @@map("payroll_details")
+}
+
+model Notification {
+  id         Int      @id @default(autoincrement())
+
+  message    String
+  type       String
+  isRead     Boolean  @default(false)
+
+  createdAt  DateTime @default(now())
+
+  @@map("notifications")
+}
+
+model CompanyProfile {
+  id         Int      @id @default(autoincrement())
+
+  nama       String
+  alamat     String
+  email      String?
+  telepon    String?
+  logoUrl    String?
+
+  @@map("company_profile")
+}
