@@ -57,3 +57,40 @@ export async function getGrades() {
     },
   });
 }
+
+type CreateEmployeeInput = {
+  nama: string;
+  nik: string;
+  email: string;
+  tanggalLahir: string;
+  tanggalMasuk: string;
+  status: EmployeeWithRelations["status"];
+  positionId: number;
+  gradeId: number;
+};
+
+
+export async function createEmployee(
+  data: CreateEmployeeInput
+) {
+  return prisma.employee.create({
+    data: {
+      nama: data.nama,
+      nik: data.nik,
+      email: data.email,
+
+      tanggalLahir: new Date(data.tanggalLahir),
+      tanggalMasuk: new Date(data.tanggalMasuk),
+
+      status: data.status,
+
+      positionId: data.positionId,
+      gradeId: data.gradeId,
+    },
+
+    include: {
+      position: true,
+      grade: true,
+    },
+  });
+}

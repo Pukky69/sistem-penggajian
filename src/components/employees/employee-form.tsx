@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { createEmployeeAction } from "@/actions/employee.action";
 
 import {
   Controller,
@@ -58,9 +59,17 @@ export function EmployeeForm({
   });
 
 
-  const onSubmit = (values: EmployeeFormValues) => {
-    console.log("SUCCESS", values);
-  };
+const onSubmit = async (
+  values: EmployeeFormValues
+) => {
+
+  const result = await createEmployeeAction(values);
+
+
+  console.log(result);
+
+
+};
 
 
   const onError = (errors: unknown) => {
