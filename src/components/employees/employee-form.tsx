@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+
 import { createEmployeeAction } from "@/actions/employee.action";
+import { toast } from "sonner";
+
+import { useRouter } from "next/navigation";
 
 import {
   Controller,
@@ -43,8 +47,9 @@ export function EmployeeForm({
   grades,
 }: EmployeeFormProps) {
 
-  const form = useForm<EmployeeFormValues>({
-    resolver: zodResolver(employeeSchema),
+    const router = useRouter();
+    
+    const form = useForm<EmployeeFormValues>({
 
     defaultValues: {
       nama: "",
@@ -66,8 +71,18 @@ const onSubmit = async (
   const result = await createEmployeeAction(values);
 
 
-  console.log(result);
+  if (!result.success) {
 
+    toast.error(result.message);
+
+    return;
+  }
+
+
+  toast.success(result.message);
+
+
+  router.push("/employees");
 
 };
 
