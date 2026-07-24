@@ -1,4 +1,4 @@
-import { PrismaClient, Role } from "@prisma/client";
+import { PrismaClient, Role, EmployeeStatus } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
@@ -61,6 +61,80 @@ async function main() {
       create: grade,
     });
   }
+
+// =========================
+// EMPLOYEE
+// =========================
+const manager = await prisma.position.findUnique({
+  where: { nama: "Manager" },
+});
+
+const supervisor = await prisma.position.findUnique({
+  where: { nama: "Supervisor" },
+});
+
+const staff = await prisma.position.findUnique({
+  where: { nama: "Staff" },
+});
+
+const gradeA = await prisma.grade.findUnique({
+  where: { nama: "A" },
+});
+
+const gradeB = await prisma.grade.findUnique({
+  where: { nama: "B" },
+});
+
+const gradeC = await prisma.grade.findUnique({
+  where: { nama: "C" },
+});
+
+if (
+  !manager ||
+  !supervisor ||
+  !staff ||
+  !gradeA ||
+  !gradeB ||
+  !gradeC
+) {
+  throw new Error("Position atau Grade belum tersedia.");
+}
+
+await prisma.employee.createMany({
+  skipDuplicates: true,
+  data: [
+    {
+      nik: "EMP001",
+      nama: "Budi Santoso",
+      email: "budi@payroll.com",
+      tanggalLahir: new Date("1995-05-15"),
+      tanggalMasuk: new Date("2023-01-10"),
+      status: EmployeeStatus.AKTIF,
+      positionId: manager.id,
+      gradeId: gradeA.id,
+    },
+    {
+      nik: "EMP002",
+      nama: "Siti Aisyah",
+      email: "siti@payroll.com",
+      tanggalLahir: new Date("1997-08-20"),
+      tanggalMasuk: new Date("2023-05-01"),
+      status: EmployeeStatus.AKTIF,
+      positionId: supervisor.id,
+      gradeId: gradeB.id,
+    },
+    {
+      nik: "EMP003",
+      nama: "Andi Wijaya",
+      email: "andi@payroll.com",
+      tanggalLahir: new Date("1998-02-12"),
+      tanggalMasuk: new Date("2024-01-15"),
+      status: EmployeeStatus.NONAKTIF,
+      positionId: staff.id,
+      gradeId: gradeC.id,
+    },
+  ],
+});
 
   // =========================
   // EARNING

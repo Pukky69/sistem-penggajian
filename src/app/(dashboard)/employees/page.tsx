@@ -1,22 +1,30 @@
-import { redirect } from "next/navigation";
-import { Role } from "@prisma/client";
+import { EmployeeTable } from "@/components/employees/employee-table";
+import { EmployeeToolbar } from "@/components/employees/employee-toolbar";
+import { EmployeePagination } from "@/components/employees/employee-pagination";
 
-import { requireAuth } from "@/lib/session";
-import { canAccess } from "@/lib/permissions";
+import { requireAdmin } from "@/lib/session";
+import { getEmployees } from "@/services/employee.service";
 
 export default async function EmployeesPage() {
-  const user = await requireAuth();
+  await requireAdmin();
 
-  if (!canAccess(user.role, [Role.ADMIN])) {
-    redirect("/dashboard");
-  }
+  const employees = await getEmployees();
 
   return (
-    <div className="space-y-2">
-      <h1 className="text-3xl font-bold">Karyawan</h1>
-      <p className="text-muted-foreground">
-        Halaman manajemen data karyawan.
-      </p>
-    </div>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Data Karyawan</h1>
+
+        <p className="text-muted-foreground">
+          Kelola seluruh data karyawan perusahaan.
+        </p>
+      </div>
+
+      <EmployeeToolbar />
+
+  <EmployeeTable employees={employees} />
+
+  <EmployeePagination />
+</div>
   );
 }
