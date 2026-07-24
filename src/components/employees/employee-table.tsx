@@ -28,7 +28,7 @@ export function EmployeeTable({ employees }: Props) {
             <TableHead>Jabatan</TableHead>
             <TableHead>Golongan</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead className="text-right">Aksi</TableHead>
+            <TableHead className="w-20 text-right">Aksi</TableHead>
           </TableRow>
         </TableHeader>
 
@@ -38,13 +38,15 @@ export function EmployeeTable({ employees }: Props) {
               <TableRow key={employee.id}>
   <TableCell>{index + 1}</TableCell>
 
-  <TableCell className="font-medium">
-    {employee.nama}
-  </TableCell>
+  <TableCell className="font-medium whitespace-nowrap">
+  {employee.nama}
+</TableCell>
 
   <TableCell>{employee.nik}</TableCell>
 
-  <TableCell>{employee.email}</TableCell>
+  <TableCell className="whitespace-nowrap">
+  {employee.email}
+</TableCell>
 
   <TableCell>{employee.position.nama}</TableCell>
 

@@ -33,3 +33,27 @@ export async function getEmployeeById(id: number) {
     },
   });
 }
+
+export async function getPositions() {
+  return prisma.position.findMany({
+    select: {
+      id: true,
+      nama: true,
+    },
+    orderBy: {
+      nama: "asc",
+    },
+  });
+}
+
+export async function getGrades() {
+  return prisma.grade.findMany({
+    select: {
+      id: true,
+      nama: true,
+    },
+    orderBy: {
+      nama: "asc",
+    },
+  });
+}

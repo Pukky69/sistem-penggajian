@@ -1,9 +1,14 @@
+"use client";
+
 import { Search, Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function EmployeeToolbar() {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
       <div className="relative w-full max-w-sm">
@@ -15,8 +20,8 @@ export function EmployeeToolbar() {
         />
       </div>
 
-      <Button>
-        <Plus className="mr-2 size-4" />
+      <Button onClick={() => router.push("/employees/create")}>
+        <Plus className="size-4" />
         Tambah Karyawan
       </Button>
     </div>
