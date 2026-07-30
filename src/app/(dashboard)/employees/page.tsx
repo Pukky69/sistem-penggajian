@@ -3,12 +3,43 @@ import { EmployeeToolbar } from "@/components/employees/employee-toolbar";
 import { EmployeePagination } from "@/components/employees/employee-pagination";
 
 import { requireAdmin } from "@/lib/session";
-import { getEmployees } from "@/services/employee.service";
+import {
+  getEmployees,
+  getGrades,
+  getPositions,
+} from "@/services/employee.service";
+import { EmployeeStatus } from "@prisma/client";
 
-export default async function EmployeesPage() {
+type Props = {
+  searchParams: Promise<{
+    search?: string;
+    positionId?: string;
+    gradeId?: string;
+    status?: string;
+  }>;
+};
+
+export default async function EmployeesPage({ searchParams }: Props) {
   await requireAdmin();
 
-  const employees = await getEmployees();
+  // Read Async SearchParams
+  const resolvedParams = await searchParams;
+
+  const search = resolvedParams.search || undefined;
+  const positionId = resolvedParams.positionId
+    ? Number(resolvedParams.positionId)
+    : undefined;
+  const gradeId = resolvedParams.gradeId
+    ? Number(resolvedParams.gradeId)
+    : undefined;
+  const status = resolvedParams.status as EmployeeStatus | undefined;
+
+  // Fetch data paralel dari database
+  const [employees, positions, grades] = await Promise.all([
+    getEmployees({ search, positionId, gradeId, status }),
+    getPositions(),
+    getGrades(),
+  ]);
 
   return (
     <div className="space-y-6">
@@ -20,11 +51,11 @@ export default async function EmployeesPage() {
         </p>
       </div>
 
-      <EmployeeToolbar />
+      <EmployeeToolbar positions={positions} grades={grades} />
 
-  <EmployeeTable employees={employees} />
+      <EmployeeTable employees={employees} />
 
-  <EmployeePagination />
-</div>
+      <EmployeePagination />
+    </div>
   );
 }

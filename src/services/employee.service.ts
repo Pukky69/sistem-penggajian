@@ -1,5 +1,4 @@
-import { Prisma } from "@prisma/client";
-import { EmployeeStatus } from "@prisma/client";
+import { EmployeeStatus, Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type EmployeeWithRelations = Prisma.EmployeeGetPayload<{
@@ -9,8 +8,42 @@ export type EmployeeWithRelations = Prisma.EmployeeGetPayload<{
   };
 }>;
 
-export async function getEmployees(): Promise<EmployeeWithRelations[]> {
+export type GetEmployeesParams = {
+  search?: string;
+  positionId?: number;
+  gradeId?: number;
+  status?: EmployeeStatus;
+};
+
+export async function getEmployees(
+  params?: GetEmployeesParams
+): Promise<EmployeeWithRelations[]> {
+  const { search, positionId, gradeId, status } = params || {};
+
+  const where: Prisma.EmployeeWhereInput = {};
+
+  if (search) {
+    where.OR = [
+      { nama: { contains: search } },
+      { nik: { contains: search } },
+      { email: { contains: search } },
+    ];
+  }
+
+  if (positionId) {
+    where.positionId = positionId;
+  }
+
+  if (gradeId) {
+    where.gradeId = gradeId;
+  }
+
+  if (status) {
+    where.status = status;
+  }
+
   return prisma.employee.findMany({
+    where,
     include: {
       position: true,
       grade: true,
@@ -69,25 +102,18 @@ type CreateEmployeeInput = {
   gradeId: number;
 };
 
-
-export async function createEmployee(
-  data: CreateEmployeeInput
-) {
+export async function createEmployee(data: CreateEmployeeInput) {
   return prisma.employee.create({
     data: {
       nama: data.nama,
       nik: data.nik,
       email: data.email,
-
       tanggalLahir: new Date(data.tanggalLahir),
       tanggalMasuk: new Date(data.tanggalMasuk),
-
       status: data.status,
-
       positionId: data.positionId,
       gradeId: data.gradeId,
     },
-
     include: {
       position: true,
       grade: true,
@@ -95,10 +121,7 @@ export async function createEmployee(
   });
 }
 
-export async function updateEmployee(
-  id: number,
-  data: CreateEmployeeInput
-) {
+export async function updateEmployee(id: number, data: CreateEmployeeInput) {
   return prisma.employee.update({
     where: { id },
     data: {
