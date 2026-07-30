@@ -57,7 +57,13 @@ export function EmployeeTable({ employees }: Props) {
   </TableCell>
 
   <TableCell className="text-right">
-    <EmployeeActions employee={{ id: employee.id, nama: employee.nama }} />
+    <EmployeeActions 
+  employee={{ 
+    id: employee.id, 
+    nama: employee.nama, 
+    status: employee.status 
+  }} 
+/>
   </TableCell>
 </TableRow>
             ))

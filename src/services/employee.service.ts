@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-
+import { EmployeeStatus } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 
 export type EmployeeWithRelations = Prisma.EmployeeGetPayload<{
@@ -117,5 +117,17 @@ export async function updateEmployee(
 export async function deleteEmployee(id: number) {
   return prisma.employee.delete({
     where: { id },
+  });
+}
+
+export async function toggleEmployeeStatus(
+  id: number,
+  newStatus: EmployeeStatus
+) {
+  return prisma.employee.update({
+    where: { id },
+    data: {
+      status: newStatus,
+    },
   });
 }

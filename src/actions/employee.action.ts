@@ -4,6 +4,8 @@ import { Prisma } from "@prisma/client";
 import { revalidatePath } from "next/cache"; 
 import { createEmployee, updateEmployee } from "@/services/employee.service"; 
 import { deleteEmployee } from "@/services/employee.service";
+import { EmployeeStatus } from "@prisma/client";
+import { toggleEmployeeStatus } from "@/services/employee.service";
 import {
   employeeSchema,
   type EmployeeFormValues,
@@ -187,6 +189,32 @@ export async function deleteEmployeeAction(id: number) {
     return {
       success: false,
       message: "Gagal menghapus data karyawan",
+    };
+  }
+}
+
+export async function toggleEmployeeStatusAction(
+  id: number,
+  currentStatus: EmployeeStatus
+) {
+  try {
+    const newStatus: EmployeeStatus =
+      currentStatus === "AKTIF" ? "NONAKTIF" : "AKTIF";
+
+    const employee = await toggleEmployeeStatus(id, newStatus);
+
+    revalidatePath("/employees");
+    revalidatePath(`/employees/${id}`);
+
+    return {
+      success: true,
+      message: `Status ${employee.nama} berhasil diubah menjadi ${newStatus}`,
+    };
+  } catch (error) {
+    console.error("TOGGLE STATUS ERROR:", error);
+    return {
+      success: false,
+      message: "Gagal mengubah status karyawan",
     };
   }
 }
