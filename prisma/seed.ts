@@ -7,11 +7,11 @@ async function main() {
   console.log("🌱 Seeding database...");
 
   // =========================
-  // ADMIN
+  // ADMIN AKUN UTAMA
   // =========================
   const hashedPassword = await bcrypt.hash("admin123", 10);
 
-  await prisma.user.upsert({
+  const admin = await prisma.user.upsert({
     where: {
       email: "admin@payroll.com",
     },
@@ -24,15 +24,12 @@ async function main() {
     },
   });
 
+  console.log("✅ Admin user seeded.");
+
   // =========================
-  // POSITION
+  // POSITION (JABATAN)
   // =========================
-  const positions = [
-    "Manager",
-    "Supervisor",
-    "Staff",
-    "Intern",
-  ];
+  const positions = ["Manager", "Supervisor", "Staff", "Intern"];
 
   for (const nama of positions) {
     await prisma.position.upsert({
@@ -42,8 +39,10 @@ async function main() {
     });
   }
 
+  console.log("✅ Positions seeded.");
+
   // =========================
-  // GRADE
+  // GRADE (GOLONGAN)
   // =========================
   const grades = [
     { nama: "A", gajiPokok: 12000000 },
@@ -62,48 +61,44 @@ async function main() {
     });
   }
 
-// =========================
-// EMPLOYEE
-// =========================
-const manager = await prisma.position.findUnique({
-  where: { nama: "Manager" },
-});
+  console.log("✅ Grades seeded.");
 
-const supervisor = await prisma.position.findUnique({
-  where: { nama: "Supervisor" },
-});
+  // =========================
+  // EMPLOYEE & KARYAWAN USER
+  // =========================
+  const manager = await prisma.position.findUnique({
+    where: { nama: "Manager" },
+  });
 
-const staff = await prisma.position.findUnique({
-  where: { nama: "Staff" },
-});
+  const supervisor = await prisma.position.findUnique({
+    where: { nama: "Supervisor" },
+  });
 
-const gradeA = await prisma.grade.findUnique({
-  where: { nama: "A" },
-});
+  const staff = await prisma.position.findUnique({
+    where: { nama: "Staff" },
+  });
 
-const gradeB = await prisma.grade.findUnique({
-  where: { nama: "B" },
-});
+  const gradeA = await prisma.grade.findUnique({
+    where: { nama: "A" },
+  });
 
-const gradeC = await prisma.grade.findUnique({
-  where: { nama: "C" },
-});
+  const gradeB = await prisma.grade.findUnique({
+    where: { nama: "B" },
+  });
 
-if (
-  !manager ||
-  !supervisor ||
-  !staff ||
-  !gradeA ||
-  !gradeB ||
-  !gradeC
-) {
-  throw new Error("Position atau Grade belum tersedia.");
-}
+  const gradeC = await prisma.grade.findUnique({
+    where: { nama: "C" },
+  });
 
-await prisma.employee.createMany({
-  skipDuplicates: true,
-  data: [
-    {
+  if (!manager || !supervisor || !staff || !gradeA || !gradeB || !gradeC) {
+    throw new Error("Position atau Grade belum tersedia.");
+  }
+
+  // Buat Karyawan
+  const emp1 = await prisma.employee.upsert({
+    where: { nik: "EMP001" },
+    update: {},
+    create: {
       nik: "EMP001",
       nama: "Budi Santoso",
       email: "budi@payroll.com",
@@ -113,7 +108,12 @@ await prisma.employee.createMany({
       positionId: manager.id,
       gradeId: gradeA.id,
     },
-    {
+  });
+
+  const emp2 = await prisma.employee.upsert({
+    where: { nik: "EMP002" },
+    update: {},
+    create: {
       nik: "EMP002",
       nama: "Siti Aisyah",
       email: "siti@payroll.com",
@@ -123,7 +123,12 @@ await prisma.employee.createMany({
       positionId: supervisor.id,
       gradeId: gradeB.id,
     },
-    {
+  });
+
+  await prisma.employee.upsert({
+    where: { nik: "EMP003" },
+    update: {},
+    create: {
       nik: "EMP003",
       nama: "Andi Wijaya",
       email: "andi@payroll.com",
@@ -133,31 +138,59 @@ await prisma.employee.createMany({
       positionId: staff.id,
       gradeId: gradeC.id,
     },
-  ],
-});
+  });
+
+  // Buat User login portal untuk Karyawan Aktif
+  const userPassword = await bcrypt.hash("user123", 10);
+
+  await prisma.user.upsert({
+    where: { email: "budi@payroll.com" },
+    update: { employeeId: emp1.id },
+    create: {
+      name: "Budi Santoso",
+      email: "budi@payroll.com",
+      password: userPassword,
+      role: Role.KARYAWAN,
+      employeeId: emp1.id,
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: "siti@payroll.com" },
+    update: { employeeId: emp2.id },
+    create: {
+      name: "Siti Aisyah",
+      email: "siti@payroll.com",
+      password: userPassword,
+      role: Role.KARYAWAN,
+      employeeId: emp2.id,
+    },
+  });
+
+  console.log("✅ Employees & Employee Users seeded.");
 
   // =========================
-  // EARNING
+  // EARNING (TUNJANGAN)
   // =========================
   const earnings = [
     {
       nama: "Bonus",
-      tipe: "FIXED",
+      tipe: "TETAP",
       nilai: 500000,
     },
     {
       nama: "Lembur",
-      tipe: "VARIABLE",
+      tipe: "TETAP",
       nilai: 100000,
     },
     {
       nama: "Transport",
-      tipe: "FIXED",
+      tipe: "TETAP",
       nilai: 300000,
     },
     {
       nama: "Tunjangan Jabatan",
-      tipe: "FIXED",
+      tipe: "TETAP",
       nilai: 750000,
     },
   ];
@@ -172,28 +205,25 @@ await prisma.employee.createMany({
     });
   }
 
+  console.log("✅ Earnings seeded.");
+
   // =========================
-  // DEDUCTION
+  // DEDUCTION (POTONGAN)
   // =========================
   const deductions = [
     {
-      nama: "BPJS",
-      tipe: "PERCENT",
-      nilai: 4,
+      nama: "BPJS Kesehatan",
+      tipe: "PERSENTASE",
+      nilai: 1, // 1%
     },
     {
       nama: "PPh21",
-      tipe: "PERCENT",
-      nilai: 5,
+      tipe: "PERSENTASE",
+      nilai: 5, // 5%
     },
     {
       nama: "Kasbon",
-      tipe: "VARIABLE",
-      nilai: 0,
-    },
-    {
-      nama: "Potongan Lain",
-      tipe: "VARIABLE",
+      tipe: "TETAP",
       nilai: 0,
     },
   ];
@@ -207,6 +237,8 @@ await prisma.employee.createMany({
       create: deduction,
     });
   }
+
+  console.log("✅ Deductions seeded.");
 
   // =========================
   // COMPANY PROFILE
@@ -226,12 +258,13 @@ await prisma.employee.createMany({
     },
   });
 
-  console.log("✅ Seed completed.");
+  console.log("✅ Company profile seeded.");
+  console.log("🚀 Seed completed successfully!");
 }
 
 main()
   .catch((error) => {
-    console.error(error);
+    console.error("❌ Seed failed:", error);
     process.exit(1);
   })
   .finally(async () => {
