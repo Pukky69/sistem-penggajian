@@ -3,15 +3,15 @@ import { prisma } from "@/lib/prisma";
 import { verifyToken } from "@/lib/jwt";
 
 export async function getCurrentUser() {
-    const cookieStore = await cookies();
+  const cookieStore = await cookies();
 
-    const token = cookieStore.get("token")?.value;
+  const token = cookieStore.get("token")?.value;
 
-    console.log("TOKEN:", token);
+  console.log("TOKEN:", token);
 
-    if (!token) {
-        return null;
-    }
+  if (!token) {
+    return null;
+  }
 
   try {
     const payload = verifyToken(token);
@@ -26,6 +26,7 @@ export async function getCurrentUser() {
         email: true,
         role: true,
         isActive: true,
+        employeeId: true,
       },
     });
 
