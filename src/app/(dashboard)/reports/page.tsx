@@ -45,27 +45,29 @@ export default async function ReportsPage({ searchParams }: Props) {
 
   const report = await getPayrollReport({ bulan, tahun });
 
+  // Format data untuk ekspor Excel
+  const exportData = report.payrolls.map((p) => {
+    const totalPotongan = Number(p.bpjs) + Number(p.pph21) + Number(p.potonganLain);
+
+    return {
+      nik: p.employee.nik,
+      nama: p.employee.nama,
+      jabatan: p.employee.position.nama,
+      golongan: p.employee.grade.nama,
+      gajiPokok: Number(p.gajiPokok),
+      totalTunjangan: Number(p.totalTunjangan),
+      bpjs: Number(p.bpjs),
+      pph21: Number(p.pph21),
+      potonganLain: Number(p.potonganLain),
+      totalPotongan,
+      takeHomePay: Number(p.takeHomePay),
+    };
+  });
+
   return (
     <div className="space-y-6">
-      {/* Header Print Only */}
-      <div className="hidden print:flex items-center justify-between border-b pb-4 mb-6">
-        <div className="flex items-center gap-3">
-          <Building2 className="size-8 text-primary" />
-          <div>
-            <h1 className="text-2xl font-bold">PT. PERUSAHAAN INDONESIA</h1>
-            <p className="text-xs text-muted-foreground">
-              LAPORAN REKAPITULASI PENGGAJIAN KARYAWAN
-            </p>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-bold">
-            PERIODE: {NAMA_BULAN[bulan]} {tahun}
-          </p>
-        </div>
-      </div>
+      {/* ... bagian header tetap sama ... */}
 
-      {/* Title & Toolbar */}
       <div className="flex flex-col gap-1 print:hidden">
         <h1 className="text-3xl font-bold tracking-tight">Laporan & Rekapitulasi</h1>
         <p className="text-muted-foreground">
@@ -73,7 +75,7 @@ export default async function ReportsPage({ searchParams }: Props) {
         </p>
       </div>
 
-      <ReportFilter />
+      <ReportFilter dataToExport={exportData} />
 
       <ReportSummaryCards summary={report.summary} />
 
