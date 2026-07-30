@@ -113,3 +113,9 @@ export async function updateEmployee(
     },
   });
 }
+
+export async function deleteEmployee(id: number) {
+  return prisma.employee.delete({
+    where: { id },
+  });
+}

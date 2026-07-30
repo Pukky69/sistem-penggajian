@@ -1,8 +1,9 @@
 "use server";
 
 import { Prisma } from "@prisma/client";
-import { revalidatePath } from "next/cache"; // Tambahkan ini
-import { createEmployee, updateEmployee } from "@/services/employee.service"; // Tambahkan updateEmployee
+import { revalidatePath } from "next/cache"; 
+import { createEmployee, updateEmployee } from "@/services/employee.service"; 
+import { deleteEmployee } from "@/services/employee.service";
 import {
   employeeSchema,
   type EmployeeFormValues,
@@ -151,6 +152,41 @@ export async function updateEmployeeAction(
     return {
       success: false,
       message: "Gagal memperbarui karyawan",
+    };
+  }
+}
+
+export async function deleteEmployeeAction(id: number) {
+  try {
+    const deletedEmployee = await deleteEmployee(id);
+
+    revalidatePath("/employees");
+
+    return {
+      success: true,
+      data: {
+        id: deletedEmployee.id,
+        nama: deletedEmployee.nama,
+      },
+      message: `Karyawan ${deletedEmployee.nama} berhasil dihapus`,
+    };
+  } catch (error) {
+    console.error("DELETE EMPLOYEE ERROR:", error);
+
+    // Prisma error jika data terikat dengan tabel lain (misal payroll)
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2003"
+    ) {
+      return {
+        success: false,
+        message: "Gagal menghapus! Data karyawan ini terikat dengan riwayat gaji/transaksi lain.",
+      };
+    }
+
+    return {
+      success: false,
+      message: "Gagal menghapus data karyawan",
     };
   }
 }
