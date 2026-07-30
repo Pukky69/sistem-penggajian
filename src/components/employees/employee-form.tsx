@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { createEmployeeAction } from "@/actions/employee.action";
+import { createEmployeeAction, updateEmployeeAction } from "@/actions/employee.action"; // Tambahkan update action
 import { toast } from "sonner";
 
 import { useRouter } from "next/navigation";
@@ -30,28 +30,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-
 type Option = {
   id: number;
   nama: string;
 };
 
+// Tambahkan initialData dan employeeId
 type EmployeeFormProps = {
   positions: Option[];
   grades: Option[];
+  initialData?: EmployeeFormValues; 
+  employeeId?: number; 
 };
-
 
 export function EmployeeForm({
   positions,
   grades,
+  initialData,
+  employeeId,
 }: EmployeeFormProps) {
+  const router = useRouter();
+  
+  // Deteksi apakah sedang dalam mode edit
+  const isEditMode = !!initialData && !!employeeId;
 
-    const router = useRouter();
-    
-    const form = useForm<EmployeeFormValues>({
-
-    defaultValues: {
+  const form = useForm<EmployeeFormValues>({
+    resolver: zodResolver(employeeSchema), // Pastikan resolver aktif
+    defaultValues: initialData || {
       nama: "",
       nik: "",
       email: "",
@@ -63,61 +68,45 @@ export function EmployeeForm({
     },
   });
 
+  const onSubmit = async (values: EmployeeFormValues) => {
+    // Eksekusi action sesuai mode
+    const result = isEditMode
+      ? await updateEmployeeAction(employeeId, values)
+      : await createEmployeeAction(values);
 
-const onSubmit = async (
-  values: EmployeeFormValues
-) => {
+    if (!result.success) {
+      toast.error(result.message);
+      return;
+    }
 
-  const result = await createEmployeeAction(values);
-
-
-  if (!result.success) {
-
-    toast.error(result.message);
-
-    return;
-  }
-
-
-  toast.success(result.message);
-
-
-  router.push("/employees");
-
-};
-
+    toast.success(result.message);
+    router.push("/employees");
+    router.refresh();
+  };
 
   const onError = (errors: unknown) => {
     console.log("ERROR VALIDATION", errors);
   };
 
-
   return (
     <Card>
       <CardHeader>
         <CardTitle>
-          Informasi Karyawan
+          {isEditMode ? "Edit Informasi Karyawan" : "Informasi Karyawan"}
         </CardTitle>
       </CardHeader>
-
 
       <CardContent>
         <form
           onSubmit={form.handleSubmit(onSubmit, onError)}
           className="space-y-6"
         >
-
           <div className="grid gap-6 md:grid-cols-2">
-
 
             {/* LEFT */}
             <div className="space-y-4">
-
               <div className="space-y-2">
-                <Label htmlFor="nama">
-                  Nama Lengkap
-                </Label>
-
+                <Label htmlFor="nama">Nama Lengkap</Label>
                 <Input
                   id="nama"
                   placeholder="Masukkan nama lengkap"
@@ -125,12 +114,8 @@ const onSubmit = async (
                 />
               </div>
 
-
               <div className="space-y-2">
-                <Label htmlFor="nik">
-                  NIK
-                </Label>
-
+                <Label htmlFor="nik">NIK</Label>
                 <Input
                   id="nik"
                   placeholder="Masukkan NIK"
@@ -138,12 +123,8 @@ const onSubmit = async (
                 />
               </div>
 
-
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email
-                </Label>
-
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -151,20 +132,12 @@ const onSubmit = async (
                   {...form.register("email")}
                 />
               </div>
-
             </div>
-
-
 
             {/* RIGHT */}
             <div className="space-y-4">
-
-
               <div className="space-y-2">
-                <Label htmlFor="tanggalLahir">
-                  Tanggal Lahir
-                </Label>
-
+                <Label htmlFor="tanggalLahir">Tanggal Lahir</Label>
                 <Input
                   id="tanggalLahir"
                   type="date"
@@ -172,36 +145,19 @@ const onSubmit = async (
                 />
               </div>
 
-
-
               <div className="space-y-2">
-                <Label>
-                  Jabatan
-                </Label>
-
-
+                <Label>Jabatan</Label>
                 <Controller
                   control={form.control}
                   name="positionId"
-
                   render={({ field }) => (
                     <Select
-                      value={
-                        field.value
-                          ? String(field.value)
-                          : ""
-                      }
-
-                      onValueChange={(value) =>
-                        field.onChange(Number(value))
-                      }
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
                     >
-
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Pilih jabatan" />
                       </SelectTrigger>
-
-
                       <SelectContent>
                         {positions.map((position) => (
                           <SelectItem
@@ -212,49 +168,25 @@ const onSubmit = async (
                           </SelectItem>
                         ))}
                       </SelectContent>
-
                     </Select>
                   )}
-
                 />
-
               </div>
 
-
-
-
               <div className="space-y-2">
-                <Label>
-                  Golongan
-                </Label>
-
-
+                <Label>Golongan</Label>
                 <Controller
                   control={form.control}
                   name="gradeId"
-
                   render={({ field }) => (
                     <Select
-
-                      value={
-                        field.value
-                          ? String(field.value)
-                          : ""
-                      }
-
-                      onValueChange={(value) =>
-                        field.onChange(Number(value))
-                      }
-
+                      value={field.value ? String(field.value) : ""}
+                      onValueChange={(value) => field.onChange(Number(value))}
                     >
-
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Pilih golongan" />
                       </SelectTrigger>
-
-
                       <SelectContent>
-
                         {grades.map((grade) => (
                           <SelectItem
                             key={grade.id}
@@ -263,24 +195,14 @@ const onSubmit = async (
                             {grade.nama}
                           </SelectItem>
                         ))}
-
                       </SelectContent>
-
                     </Select>
                   )}
-
                 />
-
               </div>
 
-
-
-
               <div className="space-y-2">
-                <Label htmlFor="tanggalMasuk">
-                  Tanggal Masuk
-                </Label>
-
+                <Label htmlFor="tanggalMasuk">Tanggal Masuk</Label>
                 <Input
                   id="tanggalMasuk"
                   type="date"
@@ -288,80 +210,45 @@ const onSubmit = async (
                 />
               </div>
 
-
-
-
               <div className="space-y-2">
-
-                <Label>
-                  Status
-                </Label>
-
-
+                <Label>Status</Label>
                 <Controller
                   control={form.control}
                   name="status"
-
                   render={({ field }) => (
-
                     <Select
                       value={field.value}
                       onValueChange={field.onChange}
                     >
-
                       <SelectTrigger className="w-full">
                         <SelectValue />
                       </SelectTrigger>
-
-
                       <SelectContent>
-
-                        <SelectItem value="AKTIF">
-                          AKTIF
-                        </SelectItem>
-
-
-                        <SelectItem value="NONAKTIF">
-                          NONAKTIF
-                        </SelectItem>
-
+                        <SelectItem value="AKTIF">AKTIF</SelectItem>
+                        <SelectItem value="NONAKTIF">NONAKTIF</SelectItem>
                       </SelectContent>
-
                     </Select>
-
                   )}
-
                 />
-
               </div>
-
-
             </div>
-
           </div>
 
-
-
           <div className="flex justify-end gap-2">
-
             <Button
               type="button"
               variant="outline"
+              onClick={() => router.push("/employees")} // Beri aksi untuk Batal
             >
               Batal
             </Button>
 
-
             <Button type="submit">
-              Simpan Karyawan
+              {isEditMode ? "Simpan Perubahan" : "Simpan Karyawan"}
             </Button>
-
           </div>
-
-
         </form>
       </CardContent>
-
     </Card>
   );
 }

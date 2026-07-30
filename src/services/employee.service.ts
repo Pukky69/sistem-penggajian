@@ -94,3 +94,22 @@ export async function createEmployee(
     },
   });
 }
+
+export async function updateEmployee(
+  id: number,
+  data: CreateEmployeeInput
+) {
+  return prisma.employee.update({
+    where: { id },
+    data: {
+      nama: data.nama,
+      nik: data.nik,
+      email: data.email,
+      tanggalLahir: new Date(data.tanggalLahir),
+      tanggalMasuk: new Date(data.tanggalMasuk),
+      status: data.status,
+      positionId: data.positionId,
+      gradeId: data.gradeId,
+    },
+  });
+}
