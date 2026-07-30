@@ -1,22 +1,22 @@
-import { redirect } from "next/navigation";
-import { Role } from "@prisma/client";
-
-import { requireAuth } from "@/lib/session";
-import { canAccess } from "@/lib/permissions";
+import { requireAdmin } from "@/lib/session";
+import { getCompanySettings } from "@/services/settings.service";
+import { SettingsForm } from "@/components/settings/settings-form";
 
 export default async function SettingsPage() {
-  const user = await requireAuth();
+  await requireAdmin();
 
-  if (!canAccess(user.role, [Role.ADMIN])) {
-    redirect("/dashboard");
-  }
+  const settings = await getCompanySettings();
 
   return (
-    <div className="space-y-2">
-      <h1 className="text-3xl font-bold">Pengaturan</h1>
-      <p className="text-muted-foreground">
-        Halaman settings.
-      </p>
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Pengaturan Sistem</h1>
+        <p className="text-muted-foreground">
+          Kelola konfigurasi profil perusahaan dan parameter aplikasi penggajian.
+        </p>
+      </div>
+
+      <SettingsForm initialSettings={settings} />
     </div>
   );
 }
