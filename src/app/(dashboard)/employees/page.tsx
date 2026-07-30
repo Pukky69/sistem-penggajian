@@ -16,13 +16,13 @@ type Props = {
     positionId?: string;
     gradeId?: string;
     status?: string;
+    page?: string;
   }>;
 };
 
 export default async function EmployeesPage({ searchParams }: Props) {
   await requireAdmin();
 
-  // Read Async SearchParams
   const resolvedParams = await searchParams;
 
   const search = resolvedParams.search || undefined;
@@ -33,10 +33,11 @@ export default async function EmployeesPage({ searchParams }: Props) {
     ? Number(resolvedParams.gradeId)
     : undefined;
   const status = resolvedParams.status as EmployeeStatus | undefined;
+  const page = resolvedParams.page ? Number(resolvedParams.page) : 1;
 
-  // Fetch data paralel dari database
-  const [employees, positions, grades] = await Promise.all([
-    getEmployees({ search, positionId, gradeId, status }),
+  // Fetch data paralel
+  const [employeesResult, positions, grades] = await Promise.all([
+    getEmployees({ search, positionId, gradeId, status, page, limit: 10 }),
     getPositions(),
     getGrades(),
   ]);
@@ -53,9 +54,9 @@ export default async function EmployeesPage({ searchParams }: Props) {
 
       <EmployeeToolbar positions={positions} grades={grades} />
 
-      <EmployeeTable employees={employees} />
+      <EmployeeTable employees={employeesResult.data} />
 
-      <EmployeePagination />
+      <EmployeePagination meta={employeesResult.meta} />
     </div>
   );
 }

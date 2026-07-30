@@ -13,12 +13,31 @@ export type GetEmployeesParams = {
   positionId?: number;
   gradeId?: number;
   status?: EmployeeStatus;
+  page?: number;
+  limit?: number;
+};
+
+export type PaginatedEmployees = {
+  data: EmployeeWithRelations[];
+  meta: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
 };
 
 export async function getEmployees(
   params?: GetEmployeesParams
-): Promise<EmployeeWithRelations[]> {
-  const { search, positionId, gradeId, status } = params || {};
+): Promise<PaginatedEmployees> {
+  const {
+    search,
+    positionId,
+    gradeId,
+    status,
+    page = 1,
+    limit = 10,
+  } = params || {};
 
   const where: Prisma.EmployeeWhereInput = {};
 
@@ -42,16 +61,37 @@ export async function getEmployees(
     where.status = status;
   }
 
-  return prisma.employee.findMany({
-    where,
-    include: {
-      position: true,
-      grade: true,
+  // Hitung offset (skip)
+  const skip = (page - 1) * limit;
+
+  // Jalankan query total count & data secara paralel
+  const [total, data] = await Promise.all([
+    prisma.employee.count({ where }),
+    prisma.employee.findMany({
+      where,
+      skip,
+      take: limit,
+      include: {
+        position: true,
+        grade: true,
+      },
+      orderBy: {
+        nama: "asc",
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(total / limit) || 1;
+
+  return {
+    data,
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages,
     },
-    orderBy: {
-      nama: "asc",
-    },
-  });
+  };
 }
 
 export async function getEmployeeById(id: number) {

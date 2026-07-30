@@ -47,6 +47,9 @@ export function EmployeeToolbar({
       params.delete(key);
     }
 
+    // Reset ke halaman 1 tiap kali filter/search berubah
+    params.delete("page");
+
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`);
     });
