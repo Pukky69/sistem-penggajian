@@ -53,9 +53,4 @@ export const EMPLOYEE_MENU = [
     href: "/salary",
     icon: Receipt,
   },
-  {
-    title: "Riwayat Gaji",
-    href: "/history",
-    icon: History,
-  },
 ];

@@ -15,6 +15,11 @@ type Props = {
   }>;
 };
 
+// Helper sederhana untuk menserialisasi objek Prisma Decimal & Date
+function serializeData<T>(data: T): T {
+  return JSON.parse(JSON.stringify(data));
+}
+
 export default async function PayrollPage({ searchParams }: Props) {
   await requireAdmin();
 
@@ -37,6 +42,9 @@ export default async function PayrollPage({ searchParams }: Props) {
     limit: 10,
   });
 
+  // Serialisasi data agar bebas dari objek Prisma Decimal
+  const safePayrolls = serializeData(result.data);
+
   return (
     <div className="space-y-6">
       <div>
@@ -48,7 +56,7 @@ export default async function PayrollPage({ searchParams }: Props) {
 
       <PayrollToolbar />
 
-      <PayrollTable payrolls={result.data} />
+      <PayrollTable payrolls={safePayrolls} />
 
       <EmployeePagination meta={result.meta} />
     </div>

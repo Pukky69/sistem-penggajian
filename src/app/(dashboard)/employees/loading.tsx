@@ -1,6 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-export default function LoadingEmployees() {
+export default function EmployeesLoading() {
   return (
     <div className="space-y-6">
       <div>
